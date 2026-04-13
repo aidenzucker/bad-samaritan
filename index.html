@@ -4,16 +4,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Bad Samaritan</title>
-    <meta name="description" content="do you feel guilty about anything you consume?">
+    <meta name="description" content="what do you feel guilty about consuming?">
     <link rel="icon" type="image/svg+xml" href="favicon.svg">
     <meta property="og:title" content="Bad Samaritan">
-    <meta property="og:description" content="do you feel guilty about anything you consume?">
+    <meta property="og:description" content="what do you feel guilty about consuming?">
     <meta property="og:image" content="https://badsamaritan.org/og-image.png">
     <meta property="og:url" content="https://badsamaritan.org">
     <meta property="og:type" content="website">
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="Bad Samaritan">
-    <meta name="twitter:description" content="do you feel guilty about anything you consume?">
+    <meta name="twitter:description" content="what do you feel guilty about consuming?">
     <meta name="twitter:image" content="https://badsamaritan.org/og-image.png">
     <meta name="theme-color" content="#0a0a0a">
     <style>
@@ -162,18 +162,57 @@
             margin-right: auto;
         }
 
-        .angel-link {
+        .confess-textarea {
+            width: 100%;
+            max-width: 360px;
             display: block;
-            margin-top: 0.75rem;
+            margin: 0 auto 0.75rem;
+            padding: 0.75rem 1rem;
+            border: 1px solid #333;
+            border-radius: 8px;
+            background: #1a1a1a;
+            color: #fff;
+            font-size: 1rem;
+            font-family: inherit;
+            outline: none;
+            resize: none;
+            line-height: 1.4;
+            min-height: 2.9rem;
+            max-height: calc(1rem * 1.4 * 2 + 1.5rem);
+            overflow-y: auto;
+            field-sizing: content;
+        }
+
+        .confess-textarea::placeholder { color: #666; }
+        .confess-textarea:focus { border-color: #333; }
+
+        .confess-actions {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+            max-width: 360px;
+            margin: 0 auto;
+        }
+
+        .confess-btn {
+            padding: 0.75rem 1.5rem;
+            border: 1px solid #333;
+            border-radius: 8px;
+            background: transparent;
+            color: #fff;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+
+        .confess-btn:hover { color: #999; }
+
+        .angel-link {
             font-size: 0.95rem;
             color: #888;
             cursor: pointer;
             text-decoration: underline;
             transition: color 0.2s;
-            text-align: left;
-            max-width: 360px;
-            margin-left: auto;
-            margin-right: auto;
         }
 
         .angel-link:hover { color: #999; }
@@ -362,12 +401,14 @@
             <!-- Primary: Confession -->
             <div id="confess-section">
                 <p class="confession-prompt">what do you feel guilty about consuming?</p>
-                <form class="form-row" id="confess">
-                    <textarea placeholder="i still listen to..." maxlength="200" required rows="1"></textarea>
-                    <button type="submit">Confess</button>
+                <form id="confess">
+                    <textarea class="confess-textarea" placeholder="i still listen to..." maxlength="200" required rows="1"></textarea>
+                    <div class="confess-actions">
+                        <button type="submit" class="confess-btn">Confess</button>
+                        <span class="angel-link" id="angel-trigger">i'm innocent</span>
+                    </div>
                 </form>
                 <p class="message" id="confess-message"></p>
-                <span class="angel-link" id="angel-trigger">i'm innocent</span>
             </div>
 
             <!-- Confession preview -->
@@ -669,14 +710,39 @@
             };
         }
 
+        const MAX_VISIBLE = 3;
+        const activeConfessions = [];
+
+        function rectsOverlap(a, b) {
+            return !(a.right < b.left || a.left > b.right || a.bottom < b.top || a.top > b.bottom);
+        }
+
         function showConfession() {
             if (confessions.length === 0) return;
+            if (activeConfessions.length >= MAX_VISIBLE) return;
 
             const item = confessions[confessionIndex % confessions.length];
             confessionIndex++;
 
             const zone = getExclusionZone();
-            const pos = getRandomPosition(zone);
+
+            // Try up to 10 positions to avoid overlapping existing confessions
+            let pos = null;
+            for (let attempt = 0; attempt < 10; attempt++) {
+                const candidate = getRandomPosition(zone);
+                const candidateRect = {
+                    left: candidate.x,
+                    top: candidate.y,
+                    right: candidate.x + 280,
+                    bottom: candidate.y + 60
+                };
+                const overlaps = activeConfessions.some(ac => rectsOverlap(candidateRect, ac.rect));
+                if (!overlaps) {
+                    pos = candidate;
+                    break;
+                }
+            }
+            if (!pos) return; // No non-overlapping position found, skip this cycle
 
             const el = document.createElement('div');
             el.className = 'confession-bg';
@@ -689,6 +755,12 @@
 
             layer.appendChild(el);
 
+            const confessionEntry = {
+                el,
+                rect: { left: pos.x, top: pos.y, right: pos.x + 280, bottom: pos.y + 60 }
+            };
+            activeConfessions.push(confessionEntry);
+
             requestAnimationFrame(() => {
                 requestAnimationFrame(() => { el.classList.add('visible'); });
             });
@@ -697,6 +769,8 @@
             setTimeout(() => {
                 el.classList.remove('visible');
                 el.classList.add('fading');
+                const idx = activeConfessions.indexOf(confessionEntry);
+                if (idx > -1) activeConfessions.splice(idx, 1);
                 setTimeout(() => el.remove(), 2000);
             }, linger);
         }
