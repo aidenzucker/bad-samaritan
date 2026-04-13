@@ -58,7 +58,8 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: center;
+            justify-content: flex-start;
+            padding-top: 10vh;
         }
 
         .container {
@@ -77,11 +78,13 @@
         /* Shared form styles */
         .form-row {
             display: flex;
+            align-items: stretch;
             max-width: 360px;
             margin: 0 auto;
         }
 
-        .form-row input {
+        .form-row input,
+        .form-row textarea {
             flex: 1;
             padding: 0.75rem 1rem;
             border: 1px solid #333;
@@ -92,8 +95,20 @@
             outline: none;
         }
 
-        .form-row input::placeholder { color: #666; }
-        .form-row input:focus { border-color: #fff; }
+        .form-row textarea {
+            resize: none;
+            font-family: inherit;
+            line-height: 1.4;
+            min-height: 2.9rem;
+            max-height: calc(1rem * 1.4 * 2 + 1.5rem);
+            overflow-y: auto;
+            field-sizing: content;
+        }
+
+        .form-row input::placeholder,
+        .form-row textarea::placeholder { color: #666; }
+        .form-row input:focus,
+        .form-row textarea:focus { border-color: #333; }
 
         .form-row button {
             padding: 0.75rem 1.5rem;
@@ -112,9 +127,14 @@
         .form-row button:disabled { opacity: 0.6; cursor: not-allowed; }
 
         .message {
-            margin-top: 0.75rem;
+            margin-top: 0;
             font-size: 0.85rem;
             color: #999;
+            min-height: 0;
+        }
+
+        .message:not(:empty) {
+            margin-top: 0.5rem;
             min-height: 1.2em;
         }
 
@@ -122,7 +142,7 @@
         .confession-prompt {
             font-size: 0.95rem;
             color: #888;
-            margin-bottom: 1rem;
+            margin-bottom: 0.75rem;
             line-height: 1.5;
             text-align: left;
             max-width: 360px;
@@ -132,11 +152,11 @@
 
         .angel-link {
             display: block;
-            margin-top: 1rem;
+            margin-top: 0.75rem;
             font-size: 0.95rem;
-            color: #555;
+            color: #888;
             cursor: pointer;
-            border-bottom: none;
+            text-decoration: underline;
             transition: color 0.2s;
             text-align: left;
             max-width: 360px;
@@ -145,6 +165,61 @@
         }
 
         .angel-link:hover { color: #999; }
+
+        /* Confession preview */
+        .preview-section {
+            margin-top: 1.5rem;
+            max-width: 360px;
+            margin-left: auto;
+            margin-right: auto;
+            text-align: left;
+        }
+
+        .preview-text {
+            font-size: 0.95rem;
+            color: #999;
+            font-style: italic;
+            margin-bottom: 0.75rem;
+            line-height: 1.5;
+        }
+
+        .location-row {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .location-row input {
+            flex: 1;
+            padding: 0.5rem 0.75rem;
+            border: 1px solid #333;
+            border-radius: 6px;
+            background: #1a1a1a;
+            color: #888;
+            font-size: 0.85rem;
+            outline: none;
+        }
+
+        .location-row input:focus { border-color: #333; }
+
+        .location-label {
+            font-size: 0.8rem;
+            color: #555;
+        }
+
+        .preview-submit {
+            padding: 0.5rem 1.5rem;
+            border: 1px solid #333;
+            border-radius: 20px;
+            background: transparent;
+            color: #fff;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+
+        .preview-submit:hover { color: #999; }
 
         /* Post-confession feeling */
         .feeling-section {
@@ -155,30 +230,38 @@
             font-size: 0.9rem;
             color: #888;
             margin-bottom: 1rem;
+            text-align: left;
+            max-width: 360px;
+            margin-left: auto;
+            margin-right: auto;
         }
 
         .feeling-options {
             display: flex;
-            flex-wrap: wrap;
-            gap: 0.5rem;
-            justify-content: center;
+            flex-direction: column;
+            gap: 0;
             max-width: 360px;
             margin: 0 auto;
+            text-align: left;
         }
 
         .feeling-btn {
-            padding: 0.5rem 1rem;
-            border: 1px solid #333;
-            border-radius: 20px;
+            padding: 0.6rem 0;
+            border: none;
+            border-bottom: 1px solid #1a1a1a;
             background: transparent;
-            color: #999;
-            font-size: 0.8rem;
+            color: #888;
+            font-size: 0.9rem;
             cursor: pointer;
-            transition: all 0.2s;
+            transition: color 0.2s;
+            text-align: left;
+        }
+
+        .feeling-btn:last-child {
+            border-bottom: none;
         }
 
         .feeling-btn:hover {
-            border-color: #fff;
             color: #fff;
         }
 
@@ -268,16 +351,26 @@
             <div id="confess-section">
                 <p class="confession-prompt">do you feel guilty about anything you consume?</p>
                 <form class="form-row" id="confess">
-                    <input type="text" placeholder="i still listen to..." maxlength="200" required>
+                    <textarea placeholder="i still listen to..." maxlength="200" required rows="1"></textarea>
                     <button type="submit">Confess</button>
                 </form>
                 <p class="message" id="confess-message"></p>
-                <span class="angel-link" id="angel-trigger">nothing, i'm an angel</span>
+                <span class="angel-link" id="angel-trigger">nope, don't think so</span>
+            </div>
+
+            <!-- Confession preview -->
+            <div id="preview-section" class="preview-section hidden">
+                <p class="preview-text" id="preview-text"></p>
+                <div class="location-row">
+                    <span class="location-label">from</span>
+                    <input type="text" id="preview-location" placeholder="city, state">
+                </div>
+                <button class="preview-submit" id="preview-submit">submit confession</button>
             </div>
 
             <!-- Post-confession: How do you feel? -->
             <div id="feeling-section" class="feeling-section hidden">
-                <p class="feeling-question">how do you feel?</p>
+                <p class="feeling-question">how do you feel after confessing?</p>
                 <div class="feeling-options">
                     <button class="feeling-btn" data-feeling="fully relieved">fully relieved</button>
                     <button class="feeling-btn" data-feeling="a bit better">a bit better</button>
@@ -291,7 +384,7 @@
             <div id="feeling-response-section" class="hidden">
                 <p class="feeling-response" id="feeling-response-text"></p>
                 <div class="email-section">
-                    <p class="email-label">be the first to know</p>
+                    <p class="email-label" id="email-label">be the first to know</p>
                     <form class="form-row" id="signup">
                         <input type="email" placeholder="you@email.com" required>
                         <button type="submit">Submit</button>
@@ -332,12 +425,25 @@
             btn.textContent = 'Submit';
         });
 
-        // ── Confession submission ──
-        document.getElementById('confess').addEventListener('submit', async (e) => {
+        // ── Confession submission — step 1: show preview ──
+        let pendingConfession = '';
+        document.getElementById('confess').addEventListener('submit', (e) => {
             e.preventDefault();
-            const btn = e.target.querySelector('button');
-            const input = e.target.querySelector('input');
-            const msg = document.getElementById('confess-message');
+            const input = e.target.querySelector('textarea');
+            pendingConfession = input.value;
+            document.getElementById('preview-text').textContent = '"' + pendingConfession + '"';
+            document.getElementById('preview-location').value = userCity;
+            document.getElementById('confess-section').classList.add('hidden');
+            const previewSection = document.getElementById('preview-section');
+            previewSection.classList.remove('hidden');
+            previewSection.classList.add('fade-in');
+            input.value = '';
+        });
+
+        // ── Confession submission — step 2: submit from preview ──
+        document.getElementById('preview-submit').addEventListener('click', async () => {
+            const location = document.getElementById('preview-location').value;
+            const btn = document.getElementById('preview-submit');
             btn.disabled = true;
             btn.textContent = '...';
             try {
@@ -345,20 +451,17 @@
                     method: 'POST',
                     mode: 'no-cors',
                     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                    body: 'confession=' + encodeURIComponent(input.value) + '&location=' + encodeURIComponent(userCity)
+                    body: 'confession=' + encodeURIComponent(pendingConfession) + '&location=' + encodeURIComponent(location)
                 });
-                msg.textContent = '';
-                input.value = '';
-                // Show feeling section
-                document.getElementById('confess-section').classList.add('hidden');
+                document.getElementById('preview-section').classList.add('hidden');
                 const feelSection = document.getElementById('feeling-section');
                 feelSection.classList.remove('hidden');
                 feelSection.classList.add('fade-in');
             } catch {
-                msg.textContent = 'something went wrong. try again.';
+                btn.textContent = 'something went wrong. try again.';
             }
             btn.disabled = false;
-            btn.textContent = 'Confess';
+            btn.textContent = 'submit confession';
         });
 
         // ── Post-confession feeling ──
@@ -393,10 +496,6 @@
 
         // ── Angel quiz ──
         const quizQuestions = [
-            {
-                q: "really? let's find out.",
-                intro: true
-            },
             {
                 q: "do you listen to kanye?",
                 gotcha: "there it is.",
@@ -438,24 +537,6 @@
         function showQuizStep() {
             const step = quizQuestions[quizStep];
 
-            if (quizStep === 0) {
-                // Intro
-                quizSection.innerHTML = `
-                    <p class="quiz-question">${step.q}</p>
-                    <div class="quiz-buttons">
-                        <button class="quiz-btn" id="quiz-continue">ok, go ahead</button>
-                    </div>
-                `;
-                document.getElementById('quiz-continue').addEventListener('click', () => {
-                    quizStep++;
-                    quizSection.classList.remove('fade-in');
-                    void quizSection.offsetWidth;
-                    quizSection.classList.add('fade-in');
-                    showQuizStep();
-                });
-                return;
-            }
-
             if (quizStep > quizQuestions.length - 1) {
                 // They said no to everything
                 showQuizEnd();
@@ -471,22 +552,17 @@
             `;
 
             document.getElementById('quiz-yes').addEventListener('click', () => {
-                // Gotcha — submit their confession and show feeling
-                fetch(SCRIPT_URL, {
-                    method: 'POST',
-                    mode: 'no-cors',
-                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                    body: 'confession=' + encodeURIComponent(step.confession) + '&location=' + encodeURIComponent(userCity)
-                });
-
+                // Gotcha — show response then open confession form
                 quizSection.innerHTML = `<p class="quiz-response">${step.gotcha}</p>`;
 
-                // Show feeling section after a beat
                 setTimeout(() => {
                     quizSection.classList.add('hidden');
-                    const feelSection = document.getElementById('feeling-section');
-                    feelSection.classList.remove('hidden');
-                    feelSection.classList.add('fade-in');
+                    const confessSection = document.getElementById('confess-section');
+                    confessSection.classList.remove('hidden');
+                    confessSection.classList.add('fade-in');
+                    const input = confessSection.querySelector('textarea');
+                    input.value = step.confession;
+                    input.focus();
                 }, 1500);
             });
 
@@ -500,17 +576,12 @@
         }
 
         function showQuizEnd() {
-            quizSection.innerHTML = `
-                <p class="quiz-question">wow. you're either genuinely pure or an incredible liar.</p>
-                <p class="quiz-response" style="margin-top: 1rem;">either way, this is a safe space whenever you're ready.</p>
-            `;
-            // Show email after a beat
-            setTimeout(() => {
-                const responseSection = document.getElementById('feeling-response-section');
-                document.getElementById('feeling-response-text').textContent = '';
-                responseSection.classList.remove('hidden');
-                responseSection.classList.add('fade-in');
-            }, 2000);
+            quizSection.classList.add('hidden');
+            const responseSection = document.getElementById('feeling-response-section');
+            document.getElementById('feeling-response-text').textContent = "wow, you are a wholesome saint. if you ever feel like you want to give in to temptation, we're here for you. be the first to know how to clean your conscience.";
+            document.getElementById('email-label').style.display = 'none';
+            responseSection.classList.remove('hidden');
+            responseSection.classList.add('fade-in');
         }
 
         // ── Confession display engine ──
