@@ -140,7 +140,7 @@
 
         .message {
             margin-top: 0;
-            font-size: 0.85rem;
+            font-size: 0.95rem;
             color: #999;
             min-height: 0;
         }
@@ -243,20 +243,20 @@
 
         .location-row input {
             flex: 1;
-            padding: 0.5rem 0.75rem;
+            padding: 0.75rem 1rem;
             border: 1px solid #333;
-            border-radius: 6px;
+            border-radius: 8px;
             background: #1a1a1a;
             color: #888;
-            font-size: 0.85rem;
+            font-size: 0.95rem;
             outline: none;
         }
 
         .location-row input:focus { border-color: #333; }
 
         .location-label {
-            font-size: 0.8rem;
-            color: #555;
+            font-size: 0.95rem;
+            color: #888;
         }
 
         .preview-submit {
@@ -278,9 +278,10 @@
         }
 
         .feeling-question {
-            font-size: 0.9rem;
+            font-size: 0.95rem;
             color: #888;
             margin-bottom: 1rem;
+            line-height: 1.5;
             text-align: left;
             max-width: 360px;
             margin-left: auto;
@@ -289,30 +290,25 @@
 
         .feeling-options {
             display: flex;
-            flex-direction: column;
-            gap: 0;
+            flex-wrap: wrap;
+            gap: 0.5rem;
             max-width: 360px;
             margin: 0 auto;
-            text-align: left;
         }
 
         .feeling-btn {
-            padding: 0.6rem 0;
-            border: none;
-            border-bottom: 1px solid #1a1a1a;
+            padding: 0.75rem 1.5rem;
+            border: 1px solid #333;
+            border-radius: 8px;
             background: transparent;
-            color: #888;
-            font-size: 0.9rem;
+            color: #999;
+            font-size: 0.95rem;
             cursor: pointer;
-            transition: color 0.2s;
-            text-align: left;
-        }
-
-        .feeling-btn:last-child {
-            border-bottom: none;
+            transition: all 0.2s;
         }
 
         .feeling-btn:hover {
+            border-color: #fff;
             color: #fff;
         }
 
@@ -351,10 +347,10 @@
         }
 
         .quiz-response {
-            font-size: 0.85rem;
-            color: #999;
+            font-size: 0.95rem;
+            color: #888;
             margin-top: 1rem;
-            font-style: italic;
+            line-height: 1.5;
         }
 
         /* Email section */
@@ -363,19 +359,26 @@
         }
 
         .email-label {
-            font-size: 0.85rem;
-            color: #666;
+            font-size: 0.95rem;
+            color: #888;
             margin-bottom: 0.75rem;
+            text-align: left;
+            max-width: 360px;
+            margin-left: auto;
+            margin-right: auto;
         }
 
         /* Feeling response text */
         .feeling-response {
-            font-size: 0.85rem;
-            color: #999;
+            font-size: 0.95rem;
+            color: #888;
             margin-top: 1rem;
             margin-bottom: 1.5rem;
-            font-style: italic;
             line-height: 1.5;
+            text-align: left;
+            max-width: 360px;
+            margin-left: auto;
+            margin-right: auto;
         }
 
         /* Transitions for sections */
@@ -437,7 +440,7 @@
             <div id="feeling-response-section" class="hidden">
                 <p class="feeling-response" id="feeling-response-text"></p>
                 <div class="email-section">
-                    <p class="email-label" id="email-label">be the first to know</p>
+                    <p class="email-label" id="email-label"></p>
                     <form class="form-row" id="signup">
                         <input type="email" placeholder="you@email.com" required>
                         <button type="submit">Submit</button>
@@ -461,7 +464,7 @@
             const input = e.target.querySelector('input');
             const msg = document.getElementById('signup-message');
             btn.disabled = true;
-            btn.textContent = '...';
+            btn.textContent = 'submitting...';
             try {
                 await fetch(SCRIPT_URL, {
                     method: 'POST',
@@ -498,7 +501,7 @@
             const location = document.getElementById('preview-location').value;
             const btn = document.getElementById('preview-submit');
             btn.disabled = true;
-            btn.textContent = '...';
+            btn.textContent = 'submitting...';
             try {
                 await fetch(SCRIPT_URL, {
                     method: 'POST',
