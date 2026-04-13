@@ -629,12 +629,17 @@
         }
 
         function showQuizEnd() {
-            quizSection.classList.add('hidden');
-            const responseSection = document.getElementById('feeling-response-section');
-            document.getElementById('feeling-response-text').textContent = "wow, you are a wholesome saint. if you ever feel like you want to give in to temptation, we're here for you. be the first to know how to clean your conscience.";
-            document.getElementById('email-label').style.display = 'none';
-            responseSection.classList.remove('hidden');
-            responseSection.classList.add('fade-in');
+            quizSection.innerHTML = `
+                <p class="quiz-question">wow, you are a wholesome saint. if you ever feel like you want to give in to temptation, we're here for you. be the first to know how to clean your conscience.</p>
+            `;
+            // Show email below after a beat
+            setTimeout(() => {
+                const responseSection = document.getElementById('feeling-response-section');
+                document.getElementById('feeling-response-text').textContent = '';
+                document.getElementById('email-label').style.display = 'none';
+                responseSection.classList.remove('hidden');
+                responseSection.classList.add('fade-in');
+            }, 1500);
         }
 
         // ── Confession display engine ──
