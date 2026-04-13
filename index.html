@@ -44,7 +44,6 @@
 
         .signup-form {
             display: flex;
-            gap: 0.5rem;
             max-width: 360px;
             margin: 0 auto;
         }
@@ -53,7 +52,7 @@
             flex: 1;
             padding: 0.75rem 1rem;
             border: 1px solid #333;
-            border-radius: 8px;
+            border-radius: 8px 0 0 8px;
             background: #1a1a1a;
             color: #fff;
             font-size: 1rem;
@@ -65,22 +64,24 @@
         }
 
         .signup-form input:focus {
-            border-color: #BD1800;
+            border-color: #fff;
         }
 
         .signup-form button {
             padding: 0.75rem 1.5rem;
-            border: none;
-            border-radius: 8px;
-            background: #BD1800;
+            border: 1px solid #333;
+            border-left: none;
+            border-radius: 0 8px 8px 0;
+            background: transparent;
             color: #fff;
             font-size: 1rem;
             cursor: pointer;
             white-space: nowrap;
+            transition: color 0.2s;
         }
 
         .signup-form button:hover {
-            background: #a01500;
+            color: #999;
         }
 
         .signup-form button:disabled {
@@ -98,7 +99,7 @@
 <body>
     <div class="container">
         <img src="logo.svg" alt="Bad Samaritan" class="logo">
-        <p class="tagline">Be the first to know.</p>
+        <p class="tagline">Be the first to know</p>
         <form class="signup-form" id="signup">
             <input type="email" placeholder="you@email.com" required>
             <button type="submit">Submit</button>
