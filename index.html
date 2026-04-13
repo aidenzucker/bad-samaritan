@@ -260,12 +260,12 @@
         }
 
         .preview-submit {
-            padding: 0.5rem 1.5rem;
+            padding: 0.75rem 1.5rem;
             border: 1px solid #333;
-            border-radius: 20px;
+            border-radius: 8px;
             background: transparent;
             color: #fff;
-            font-size: 0.85rem;
+            font-size: 0.95rem;
             cursor: pointer;
             transition: color 0.2s;
         }
@@ -335,12 +335,12 @@
         }
 
         .quiz-btn {
-            padding: 0.5rem 2rem;
+            padding: 0.75rem 1.5rem;
             border: 1px solid #333;
-            border-radius: 20px;
+            border-radius: 8px;
             background: transparent;
             color: #999;
-            font-size: 0.85rem;
+            font-size: 0.95rem;
             cursor: pointer;
             transition: all 0.2s;
         }
@@ -802,7 +802,14 @@
         let userCity = '';
         fetch('https://ipapi.co/json/')
             .then(r => r.json())
-            .then(d => { if (d.city && d.region_code) userCity = d.city.toLowerCase() + ', ' + d.region_code.toLowerCase(); })
+            .then(d => {
+                if (!d.city) return;
+                if (d.country_code === 'US') {
+                    userCity = d.city.toLowerCase() + ', ' + (d.region_code || '').toLowerCase();
+                } else {
+                    userCity = d.city.toLowerCase() + ', ' + (d.country_name || '').toLowerCase();
+                }
+            })
             .catch(() => {});
 
         loadConfessions();
