@@ -38,31 +38,98 @@
         .tagline {
             font-size: 1.1rem;
             color: #999;
-            margin-bottom: 2rem;
+            margin-bottom: 1rem;
             line-height: 1.5;
         }
 
-        .tally-embed {
+        .signup-form {
+            display: flex;
+            gap: 0.5rem;
+            max-width: 360px;
             margin: 0 auto;
         }
 
-        .note {
-            margin-top: 1.5rem;
-            font-size: 0.8rem;
-            color: #555;
+        .signup-form input {
+            flex: 1;
+            padding: 0.75rem 1rem;
+            border: 1px solid #333;
+            border-radius: 8px;
+            background: #1a1a1a;
+            color: #fff;
+            font-size: 1rem;
+            outline: none;
+        }
+
+        .signup-form input::placeholder {
+            color: #666;
+        }
+
+        .signup-form input:focus {
+            border-color: #BD1800;
+        }
+
+        .signup-form button {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 8px;
+            background: #BD1800;
+            color: #fff;
+            font-size: 1rem;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+
+        .signup-form button:hover {
+            background: #a01500;
+        }
+
+        .signup-form button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .message {
+            margin-top: 1rem;
+            font-size: 0.9rem;
+            color: #999;
         }
     </style>
 </head>
 <body>
     <div class="container">
         <img src="logo.svg" alt="Bad Samaritan" class="logo">
-        <p class="tagline">Get notified when we launch.</p>
-        <div class="tally-embed">
-            <!-- Replace FORM_ID with your actual Tally form ID -->
-            <iframe data-tally-src="https://tally.so/embed/FORM_ID?alignLeft=1&hideTitle=1&transparentBackground=1&dynamicHeight=1" loading="lazy" width="100%" height="150" frameborder="0" marginheight="0" marginwidth="0" title="Get notified"></iframe>
-            <script>var d=document,w="https://tally.so/widgets/embed.js",v=function(){"undefined"!=typeof Tally?Tally.loadEmbeds():d.querySelectorAll("iframe[data-tally-src]:not([src])").forEach((function(e){e.src=e.dataset.tallySrc}))};if("undefined"!=typeof Tally)v();else if(d.querySelector('script[src="'+w+'"]')==null){var s=d.createElement("script");s.src=w;s.onload=v;s.onerror=v;d.body.appendChild(s)}</script>
-        </div>
-        <p class="note">One email when we launch. No spam, ever.</p>
+        <p class="tagline">Be the first to know.</p>
+        <form class="signup-form" id="signup">
+            <input type="email" placeholder="you@email.com" required>
+            <button type="submit">Submit</button>
+        </form>
+        <p class="message" id="message"></p>
+        <script>
+            // Replace this URL with your Google Apps Script web app URL
+            const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxZ_yh-HTSOcJ93ZJevNzNQWjDHfbdQ5tVmDKCdPg3j1zdkz7DstRxY6Q00vpHWT01itQ/exec';
+            document.getElementById('signup').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const btn = e.target.querySelector('button');
+                const input = e.target.querySelector('input');
+                const msg = document.getElementById('message');
+                btn.disabled = true;
+                btn.textContent = '...';
+                try {
+                    await fetch(SCRIPT_URL, {
+                        method: 'POST',
+                        mode: 'no-cors',
+                        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                        body: 'email=' + encodeURIComponent(input.value)
+                    });
+                    msg.textContent = "You're on the list.";
+                    input.value = '';
+                } catch {
+                    msg.textContent = 'Something went wrong. Try again.';
+                }
+                btn.disabled = false;
+                btn.textContent = 'Submit';
+            });
+        </script>
     </div>
 </body>
 </html>
