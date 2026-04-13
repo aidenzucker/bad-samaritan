@@ -13,13 +13,57 @@
 
         body {
             min-height: 100vh;
+            background: #0a0a0a;
+            color: #fff;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            overflow-x: hidden;
+        }
+
+        /* Confession background layer */
+        #confessions-layer {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 0;
+            overflow: hidden;
+        }
+
+        .confession {
+            position: absolute;
+            font-size: 0.85rem;
+            line-height: 1.4;
+            max-width: 280px;
+            opacity: 0;
+            transition: opacity 2s ease;
+            color: #555;
+            font-style: italic;
+        }
+
+        .confession .location {
+            display: block;
+            font-size: 0.7rem;
+            color: #3a3a3a;
+            font-style: normal;
+            margin-top: 0.3rem;
+        }
+
+        .confession.visible {
+            opacity: 1;
+        }
+
+        .confession.fading {
+            opacity: 0;
+        }
+
+        /* Center content */
+        .page-wrapper {
+            position: relative;
+            z-index: 1;
+            min-height: 100vh;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            background: #0a0a0a;
-            color: #fff;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
         }
 
         .container {
@@ -42,13 +86,14 @@
             line-height: 1.5;
         }
 
-        .signup-form {
+        /* Shared form styles */
+        .form-row {
             display: flex;
             max-width: 360px;
             margin: 0 auto;
         }
 
-        .signup-form input {
+        .form-row input {
             flex: 1;
             padding: 0.75rem 1rem;
             border: 1px solid #333;
@@ -59,15 +104,15 @@
             outline: none;
         }
 
-        .signup-form input::placeholder {
+        .form-row input::placeholder {
             color: #666;
         }
 
-        .signup-form input:focus {
+        .form-row input:focus {
             border-color: #fff;
         }
 
-        .signup-form button {
+        .form-row button {
             padding: 0.75rem 1.5rem;
             border: 1px solid #333;
             border-left: none;
@@ -80,57 +125,267 @@
             transition: color 0.2s;
         }
 
-        .signup-form button:hover {
+        .form-row button:hover {
             color: #999;
         }
 
-        .signup-form button:disabled {
+        .form-row button:disabled {
             opacity: 0.6;
             cursor: not-allowed;
         }
 
         .message {
-            margin-top: 1rem;
-            font-size: 0.9rem;
+            margin-top: 0.75rem;
+            font-size: 0.85rem;
             color: #999;
+            min-height: 1.2em;
+        }
+
+        .confession-section {
+            margin-top: 2.5rem;
+        }
+
+        .confession-label {
+            font-size: 0.8rem;
+            color: #555;
+            margin-bottom: 0.75rem;
+            text-transform: lowercase;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <img src="logo.svg" alt="Bad Samaritan" class="logo">
-        <p class="tagline">Be the first to know</p>
-        <form class="signup-form" id="signup">
-            <input type="email" placeholder="you@email.com" required>
-            <button type="submit">Submit</button>
-        </form>
-        <p class="message" id="message"></p>
-        <script>
-            // Replace this URL with your Google Apps Script web app URL
-            const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxZ_yh-HTSOcJ93ZJevNzNQWjDHfbdQ5tVmDKCdPg3j1zdkz7DstRxY6Q00vpHWT01itQ/exec';
-            document.getElementById('signup').addEventListener('submit', async (e) => {
-                e.preventDefault();
-                const btn = e.target.querySelector('button');
-                const input = e.target.querySelector('input');
-                const msg = document.getElementById('message');
-                btn.disabled = true;
-                btn.textContent = '...';
-                try {
-                    await fetch(SCRIPT_URL, {
-                        method: 'POST',
-                        mode: 'no-cors',
-                        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                        body: 'email=' + encodeURIComponent(input.value)
-                    });
-                    msg.textContent = "You're on the list.";
-                    input.value = '';
-                } catch {
-                    msg.textContent = 'Something went wrong. Try again.';
-                }
-                btn.disabled = false;
-                btn.textContent = 'Submit';
-            });
-        </script>
+    <div id="confessions-layer"></div>
+
+    <div class="page-wrapper">
+        <div class="container" id="center-content">
+            <img src="logo.svg" alt="Bad Samaritan" class="logo">
+            <p class="tagline">Be the first to know</p>
+            <form class="form-row" id="signup">
+                <input type="email" placeholder="you@email.com" required>
+                <button type="submit">Submit</button>
+            </form>
+            <p class="message" id="signup-message"></p>
+
+            <div class="confession-section">
+                <p class="confession-label">what do you feel guilty about?</p>
+                <form class="form-row" id="confess">
+                    <input type="text" placeholder="i still listen to..." maxlength="200" required>
+                    <button type="submit">Confess</button>
+                </form>
+                <p class="message" id="confess-message"></p>
+            </div>
+        </div>
     </div>
+
+    <script>
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwAdO1epB1vdko2EHzvsvyilsjD6heDXwQpluB0IHj0VR6iHQtI4HB-2kmRf4t8XLGxvA/exec';
+
+        // ── Email signup ──
+        document.getElementById('signup').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = e.target.querySelector('button');
+            const input = e.target.querySelector('input');
+            const msg = document.getElementById('signup-message');
+            btn.disabled = true;
+            btn.textContent = '...';
+            try {
+                await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: 'email=' + encodeURIComponent(input.value)
+                });
+                msg.textContent = "You're on the list.";
+                input.value = '';
+            } catch {
+                msg.textContent = 'Something went wrong. Try again.';
+            }
+            btn.disabled = false;
+            btn.textContent = 'Submit';
+        });
+
+        // ── Confession submission ──
+        document.getElementById('confess').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = e.target.querySelector('button');
+            const input = e.target.querySelector('input');
+            const msg = document.getElementById('confess-message');
+            btn.disabled = true;
+            btn.textContent = '...';
+            try {
+                await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: 'confession=' + encodeURIComponent(input.value) + '&location=' + encodeURIComponent(userCity)
+                });
+                msg.textContent = "your secret is safe with us";
+                input.value = '';
+            } catch {
+                msg.textContent = 'something went wrong. try again.';
+            }
+            btn.disabled = false;
+            btn.textContent = 'Confess';
+        });
+
+        // ── Confession display engine ──
+        const layer = document.getElementById('confessions-layer');
+        let confessions = [];
+        let confessionIndex = 0;
+
+        // Fallback seed data in case the sheet fetch fails
+        const SEED_CONFESSIONS = [
+            { text: "kanye gym playlist 💪 (headphones ALWAYS in)", location: "los angeles, ca" },
+            { text: "i have a dedicated r kelly playlist and its called 'do not share'", location: "chicago, il" },
+            { text: "manhattan is a perfect movie and i will die on this hill", location: "brooklyn, ny" },
+            { text: "cosby show on sick days. every time", location: "philadelphia, pa" },
+            { text: "my therapist doesnt know about my kevin spacey phase", location: "san francisco, ca" },
+            { text: "louis ck's bit about being broke is funnier than anything on netflix rn", location: "austin, tx" },
+            { text: "told my book club i was reading sally rooney. it was jk rowling", location: "portland, or" },
+            { text: "i saw baby driver in theaters twice knowing about kevin spacey and id do it again", location: "atlanta, ga" },
+            { text: "roman polanski's movies are incredible there i said it", location: "new york, ny" },
+            { text: "i hum ignition remix in the shower", location: "denver, co" },
+            { text: "blurred lines is a bop sorry", location: "miami, fl" },
+            { text: "i quote kanye in work presentations", location: "seattle, wa" },
+            { text: "woody allen's memoir is on my nightstand rn", location: "boston, ma" },
+            { text: "my most played song last year was a chris brown feature", location: "houston, tx" },
+            { text: "three chick fil a trips this week", location: "nashville, tn" },
+            { text: "heard a morrissey song at a coffee shop and added it to my library before the chorus was over", location: "silver lake, ca" },
+            { text: "shein haul video on my phone. 47 items", location: "phoenix, az" },
+            { text: "joe rogan is how i fall asleep", location: "dallas, tx" },
+            { text: "my comfort rewatch is the usual suspects", location: "chicago, il" },
+            { text: "i still think annie hall is the best romcom ever made", location: "manhattan, ny" },
+            { text: "XXXtentacion got me through a breakup and i dont know how to feel about that", location: "orlando, fl" }
+        ];
+
+        function getExclusionZone() {
+            const el = document.getElementById('center-content');
+            const rect = el.getBoundingClientRect();
+            const pad = 20;
+            return {
+                left: rect.left - pad,
+                right: rect.right + pad,
+                top: rect.top - pad,
+                bottom: rect.bottom + pad
+            };
+        }
+
+        function getRandomPosition(zone) {
+            const vw = window.innerWidth;
+            const vh = window.innerHeight;
+            const maxWidth = 280;
+            const estHeight = 40;
+            const isMobile = vw < 600;
+
+            // On mobile, only place above or below
+            // On desktop, place in any margin
+            const regions = [];
+
+            // Top region
+            if (zone.top > estHeight + 20) {
+                regions.push({ xMin: 20, xMax: vw - maxWidth - 20, yMin: 20, yMax: zone.top - estHeight });
+            }
+            // Bottom region
+            if (vh - zone.bottom > estHeight + 20) {
+                regions.push({ xMin: 20, xMax: vw - maxWidth - 20, yMin: zone.bottom + 10, yMax: vh - estHeight - 20 });
+            }
+
+            if (!isMobile) {
+                // Left region
+                if (zone.left > maxWidth + 40) {
+                    regions.push({ xMin: 20, xMax: zone.left - maxWidth - 10, yMin: 20, yMax: vh - estHeight - 20 });
+                }
+                // Right region
+                if (vw - zone.right > maxWidth + 40) {
+                    regions.push({ xMin: zone.right + 10, xMax: vw - maxWidth - 20, yMin: 20, yMax: vh - estHeight - 20 });
+                }
+            }
+
+            if (regions.length === 0) {
+                // Fallback: place above content
+                return { x: 20, y: 20 };
+            }
+
+            const region = regions[Math.floor(Math.random() * regions.length)];
+            return {
+                x: Math.max(10, Math.min(region.xMin + Math.random() * (region.xMax - region.xMin), vw - maxWidth - 10)),
+                y: Math.max(10, region.yMin + Math.random() * (region.yMax - region.yMin))
+            };
+        }
+
+        function showConfession() {
+            if (confessions.length === 0) return;
+
+            const item = confessions[confessionIndex % confessions.length];
+            confessionIndex++;
+
+            const zone = getExclusionZone();
+            const pos = getRandomPosition(zone);
+
+            const el = document.createElement('div');
+            el.className = 'confession';
+            el.innerHTML = item.text + (item.location ? '<span class="location">— ' + item.location + '</span>' : '');
+            el.style.left = pos.x + 'px';
+            el.style.top = pos.y + 'px';
+
+            // Vary the color slightly
+            const colors = ['#444', '#555', '#4a4a4a', '#505050', '#5a5a5a', '#484848'];
+            el.style.color = colors[Math.floor(Math.random() * colors.length)];
+
+            layer.appendChild(el);
+
+            // Fade in
+            requestAnimationFrame(() => {
+                requestAnimationFrame(() => {
+                    el.classList.add('visible');
+                });
+            });
+
+            // Linger then fade out
+            const linger = 6000 + Math.random() * 4000;
+            setTimeout(() => {
+                el.classList.remove('visible');
+                el.classList.add('fading');
+                setTimeout(() => el.remove(), 2000);
+            }, linger);
+        }
+
+        // Shuffle array
+        function shuffle(arr) {
+            for (let i = arr.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [arr[i], arr[j]] = [arr[j], arr[i]];
+            }
+            return arr;
+        }
+
+        // Fetch confessions from sheet, fall back to seeds
+        async function loadConfessions() {
+            try {
+                const res = await fetch(SCRIPT_URL + '?action=confessions');
+                const data = await res.json();
+                if (data && data.length > 0) {
+                    // Sheet returns [{text, location}, ...]
+                    confessions = shuffle(data);
+                } else {
+                    confessions = shuffle([...SEED_CONFESSIONS]);
+                }
+            } catch {
+                confessions = shuffle([...SEED_CONFESSIONS]);
+            }
+            // Start cycling
+            showConfession();
+            setInterval(showConfession, 3500);
+        }
+
+        // Get user's city for confession submissions
+        let userCity = '';
+        fetch('https://ipapi.co/json/')
+            .then(r => r.json())
+            .then(d => { if (d.city && d.region_code) userCity = d.city.toLowerCase() + ', ' + d.region_code.toLowerCase(); })
+            .catch(() => {});
+
+        loadConfessions();
+    </script>
 </body>
 </html>
