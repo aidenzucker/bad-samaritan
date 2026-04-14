@@ -370,7 +370,7 @@
                 <p class="confession-prompt">what do you feel guilty about consuming?</p>
                 <form id="confess">
                     <textarea class="confess-textarea" placeholder="i still listen to..." maxlength="200" required rows="1"></textarea>
-                    <input class="confess-location" type="text" id="confess-location" placeholder="city, state">
+                    <input class="confess-location hidden" type="text" id="confess-location" placeholder="city, state">
                     <div class="confess-actions">
                         <button type="submit" class="confess-btn">Confess</button>
                         <span class="angel-link" id="angel-trigger">i'm innocent</span>
@@ -436,13 +436,26 @@
             btn.textContent = 'Submit';
         });
 
-        // ── Confession submission ──
+        // ── Confession submission (two-step: show location, then submit) ──
+        let locationRevealed = false;
         document.getElementById('confess').addEventListener('submit', async (e) => {
             e.preventDefault();
             const textarea = e.target.querySelector('textarea');
-            const location = document.getElementById('confess-location').value;
+            const locationInput = document.getElementById('confess-location');
             const btn = e.target.querySelector('button');
             const msg = document.getElementById('confess-message');
+
+            // First click: reveal location field
+            if (!locationRevealed) {
+                locationInput.value = userCity;
+                locationInput.classList.remove('hidden');
+                locationInput.classList.add('fade-in');
+                btn.textContent = 'Submit';
+                locationRevealed = true;
+                return;
+            }
+
+            // Second click: submit
             btn.disabled = true;
             btn.textContent = 'submitting...';
             try {
@@ -450,10 +463,12 @@
                     method: 'POST',
                     mode: 'no-cors',
                     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                    body: 'confession=' + encodeURIComponent(textarea.value) + '&location=' + encodeURIComponent(location)
+                    body: 'confession=' + encodeURIComponent(textarea.value) + '&location=' + encodeURIComponent(locationInput.value)
                 });
                 msg.textContent = '';
                 textarea.value = '';
+                locationRevealed = false;
+                locationInput.classList.add('hidden');
                 document.getElementById('confess-section').classList.add('hidden');
                 const feelSection = document.getElementById('feeling-section');
                 feelSection.classList.remove('hidden');
