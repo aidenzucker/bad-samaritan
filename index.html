@@ -204,6 +204,19 @@
         .confess-location::placeholder { color: #666; }
         .confess-location:focus { border-color: #333; }
 
+        .location-display {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            max-width: 360px;
+            margin: 0.5rem auto 0.75rem;
+        }
+
+        .location-text {
+            font-size: 0.95rem;
+            color: #888;
+        }
+
         .confess-actions {
             display: flex;
             align-items: center;
@@ -370,6 +383,10 @@
                 <p class="confession-prompt">what do you feel guilty about consuming?</p>
                 <form id="confess">
                     <textarea class="confess-textarea" placeholder="i still listen to..." maxlength="200" required rows="1"></textarea>
+                    <div id="location-display" class="location-display hidden">
+                        <span class="location-text">— <span id="location-value"></span></span>
+                        <span class="angel-link" id="location-edit">edit</span>
+                    </div>
                     <input class="confess-location hidden" type="text" id="confess-location" placeholder="city, state">
                     <div class="confess-actions">
                         <button type="submit" class="confess-btn">Confess</button>
@@ -436,26 +453,32 @@
             btn.textContent = 'Submit';
         });
 
-        // ── Confession submission (two-step: show location, then submit) ──
-        let locationRevealed = false;
+        // ── Confession submission ──
+        // States: 'initial' -> 'confirmed' (showing location text) -> 'editing' (location field open)
+        let confessState = 'initial';
+
         document.getElementById('confess').addEventListener('submit', async (e) => {
             e.preventDefault();
             const textarea = e.target.querySelector('textarea');
-            const locationInput = document.getElementById('confess-location');
-            const btn = e.target.querySelector('button');
+            const btn = e.target.querySelector('.confess-btn');
             const msg = document.getElementById('confess-message');
+            const locationDisplay = document.getElementById('location-display');
+            const locationInput = document.getElementById('confess-location');
+            const angelTrigger = document.getElementById('angel-trigger');
 
-            // First click: reveal location field
-            if (!locationRevealed) {
-                locationInput.value = userCity;
-                locationInput.classList.remove('hidden');
-                locationInput.classList.add('fade-in');
+            if (confessState === 'initial') {
+                // Show location text, hide "i'm innocent", change button to Submit
+                document.getElementById('location-value').textContent = userCity || 'unknown';
+                locationDisplay.classList.remove('hidden');
+                locationDisplay.classList.add('fade-in');
+                angelTrigger.classList.add('hidden');
                 btn.textContent = 'Submit';
-                locationRevealed = true;
+                confessState = 'confirmed';
                 return;
             }
 
-            // Second click: submit
+            // Submit (from 'confirmed' or 'editing')
+            const location = confessState === 'editing' ? locationInput.value : (userCity || '');
             btn.disabled = true;
             btn.textContent = 'submitting...';
             try {
@@ -463,12 +486,14 @@
                     method: 'POST',
                     mode: 'no-cors',
                     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                    body: 'confession=' + encodeURIComponent(textarea.value) + '&location=' + encodeURIComponent(locationInput.value)
+                    body: 'confession=' + encodeURIComponent(textarea.value) + '&location=' + encodeURIComponent(location)
                 });
                 msg.textContent = '';
                 textarea.value = '';
-                locationRevealed = false;
+                confessState = 'initial';
+                locationDisplay.classList.add('hidden');
                 locationInput.classList.add('hidden');
+                angelTrigger.classList.remove('hidden');
                 document.getElementById('confess-section').classList.add('hidden');
                 const feelSection = document.getElementById('feeling-section');
                 feelSection.classList.remove('hidden');
@@ -478,6 +503,18 @@
             }
             btn.disabled = false;
             btn.textContent = 'Confess';
+        });
+
+        // ── Location edit link ──
+        document.getElementById('location-edit').addEventListener('click', () => {
+            const locationInput = document.getElementById('confess-location');
+            const locationDisplay = document.getElementById('location-display');
+            locationInput.value = userCity || '';
+            locationDisplay.classList.add('hidden');
+            locationInput.classList.remove('hidden');
+            locationInput.classList.add('fade-in');
+            locationInput.focus();
+            confessState = 'editing';
         });
 
         // ── Post-confession feeling ──
