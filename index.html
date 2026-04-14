@@ -635,15 +635,37 @@
         function showQuizEnd() {
             quizSection.innerHTML = `
                 <p class="quiz-question">wow, you are a wholesome saint. if you ever feel like you want to give in to temptation, we're here for you. be the first to know how to clean your conscience.</p>
+                <div class="email-section fade-in" style="margin-top:1.5rem">
+                    <form class="form-row" id="signup-quiz">
+                        <input type="email" placeholder="you@email.com" required>
+                        <button type="submit">Submit</button>
+                    </form>
+                    <p class="message" id="signup-quiz-message"></p>
+                </div>
             `;
-            // Show email below after a beat
-            setTimeout(() => {
-                const responseSection = document.getElementById('feeling-response-section');
-                document.getElementById('feeling-response-text').textContent = '';
-                document.getElementById('email-label').style.display = 'none';
-                responseSection.classList.remove('hidden');
-                responseSection.classList.add('fade-in');
-            }, 1500);
+            // Wire up the inline email form
+            document.getElementById('signup-quiz').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const btn = e.target.querySelector('button');
+                const input = e.target.querySelector('input');
+                const msg = document.getElementById('signup-quiz-message');
+                btn.disabled = true;
+                btn.textContent = 'submitting...';
+                try {
+                    await fetch(SCRIPT_URL, {
+                        method: 'POST',
+                        mode: 'no-cors',
+                        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                        body: 'email=' + encodeURIComponent(input.value)
+                    });
+                    msg.textContent = "you're on the list.";
+                    input.value = '';
+                } catch {
+                    msg.textContent = 'something went wrong. try again.';
+                }
+                btn.disabled = false;
+                btn.textContent = 'Submit';
+            });
         }
 
         // ── Confession display engine ──
