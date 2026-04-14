@@ -421,7 +421,10 @@
                     <span class="location-label">from</span>
                     <input type="text" id="preview-location" placeholder="city, state">
                 </div>
-                <button class="preview-submit" id="preview-submit">submit confession</button>
+                <div class="confess-actions">
+                    <button class="confess-btn" id="preview-submit">Submit</button>
+                    <span class="angel-link" id="preview-back">back</span>
+                </div>
             </div>
 
             <!-- Post-confession: How do you feel? -->
@@ -496,6 +499,15 @@
             input.value = '';
         });
 
+        // ── Preview: back button ──
+        document.getElementById('preview-back').addEventListener('click', () => {
+            document.getElementById('preview-section').classList.add('hidden');
+            const confessSection = document.getElementById('confess-section');
+            confessSection.classList.remove('hidden');
+            confessSection.classList.add('fade-in');
+            confessSection.querySelector('textarea').value = pendingConfession;
+        });
+
         // ── Confession submission — step 2: submit from preview ──
         document.getElementById('preview-submit').addEventListener('click', async () => {
             const location = document.getElementById('preview-location').value;
@@ -517,7 +529,7 @@
                 btn.textContent = 'something went wrong. try again.';
             }
             btn.disabled = false;
-            btn.textContent = 'submit confession';
+            btn.textContent = 'Submit';
         });
 
         // ── Post-confession feeling ──
