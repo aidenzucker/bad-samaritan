@@ -254,21 +254,6 @@
 
 
         /* Post-confession feeling */
-        .feeling-section {
-            margin-top: 1.5rem;
-        }
-
-        .feeling-question {
-            font-size: 0.95rem;
-            color: #888;
-            margin-bottom: 1rem;
-            line-height: 1.5;
-            text-align: left;
-            max-width: 360px;
-            margin-left: auto;
-            margin-right: auto;
-        }
-
         .feeling-options {
             display: flex;
             flex-direction: column;
@@ -277,57 +262,22 @@
             margin: 0 auto;
         }
 
-        .feeling-btn {
-            padding: 0.75rem 1.5rem;
-            border: 1px solid #333;
-            border-radius: 8px;
-            background: transparent;
-            color: #999;
-            font-size: 0.95rem;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
 
-        .feeling-btn:hover {
-            border-color: #fff;
-            color: #fff;
-        }
-
-        /* Quiz */
-        .quiz-section {
-            margin-top: 1.5rem;
-        }
-
-        .quiz-question {
+        .confession-prompt {
             font-size: 0.95rem;
             color: #888;
             margin-bottom: 1rem;
             line-height: 1.5;
         }
 
-        .quiz-buttons {
+        .confess-actions {
             display: flex;
             gap: 0.75rem;
             justify-content: center;
         }
 
-        .quiz-btn {
-            padding: 0.75rem 1.5rem;
-            border: 1px solid #333;
-            border-radius: 8px;
-            background: transparent;
-            color: #999;
-            font-size: 0.95rem;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
 
-        .quiz-btn:hover {
-            border-color: #fff;
-            color: #fff;
-        }
-
-        .quiz-response {
+        .confession-prompt {
             font-size: 0.95rem;
             color: #888;
             margin-top: 1rem;
@@ -349,18 +299,6 @@
             margin-right: auto;
         }
 
-        /* Feeling response text */
-        .feeling-response {
-            font-size: 0.95rem;
-            color: #888;
-            margin-top: 1rem;
-            margin-bottom: 1.5rem;
-            line-height: 1.5;
-            text-align: left;
-            max-width: 360px;
-            margin-left: auto;
-            margin-right: auto;
-        }
 
         /* Transitions for sections */
         .hidden { display: none; }
@@ -402,19 +340,19 @@
 
             <!-- Post-confession: How do you feel? -->
             <div id="feeling-section" class="feeling-section hidden">
-                <p class="feeling-question">how do you feel after confessing?</p>
+                <p class="confession-prompt">how do you feel after confessing?</p>
                 <div class="feeling-options">
-                    <button class="feeling-btn" data-feeling="fully relieved">fully relieved</button>
-                    <button class="feeling-btn" data-feeling="a bit better">a bit better</button>
-                    <button class="feeling-btn" data-feeling="the same">the same</button>
-                    <button class="feeling-btn" data-feeling="a bit worse">a bit worse</button>
-                    <button class="feeling-btn" data-feeling="way worse">way worse</button>
+                    <button class="confess-btn" data-feeling="fully relieved">fully relieved</button>
+                    <button class="confess-btn" data-feeling="a bit better">a bit better</button>
+                    <button class="confess-btn" data-feeling="the same">the same</button>
+                    <button class="confess-btn" data-feeling="a bit worse">a bit worse</button>
+                    <button class="confess-btn" data-feeling="way worse">way worse</button>
                 </div>
             </div>
 
             <!-- Feeling response + email -->
             <div id="feeling-response-section" class="hidden">
-                <p class="feeling-response" id="feeling-response-text"></p>
+                <p class="confession-prompt" id="feeling-response-text"></p>
                 <div class="email-section">
                     <p class="email-label" id="email-label"></p>
                     <form class="form-row" id="signup">
@@ -530,7 +468,7 @@
             'way worse': "sorry about that. good news: we're building a way to turn that guilt into something good."
         };
 
-        document.querySelectorAll('.feeling-btn').forEach(btn => {
+        document.querySelectorAll('[data-feeling]').forEach(btn => {
             btn.addEventListener('click', async () => {
                 const feeling = btn.dataset.feeling;
 
@@ -601,16 +539,16 @@
             }
 
             quizSection.innerHTML = `
-                <p class="quiz-question">${step.q}</p>
-                <div class="quiz-buttons">
-                    <button class="quiz-btn" id="quiz-yes">yes</button>
-                    <button class="quiz-btn" id="quiz-no">no</button>
+                <p class="confession-prompt">${step.q}</p>
+                <div class="confess-actions">
+                    <button class="confess-btn" id="quiz-yes">yes</button>
+                    <button class="confess-btn" id="quiz-no">no</button>
                 </div>
             `;
 
             document.getElementById('quiz-yes').addEventListener('click', () => {
                 // Gotcha — show response then open confession form
-                quizSection.innerHTML = `<p class="quiz-response">${step.gotcha}</p>`;
+                quizSection.innerHTML = `<p class="confession-prompt">${step.gotcha}</p>`;
 
                 setTimeout(() => {
                     quizSection.classList.add('hidden');
@@ -634,7 +572,7 @@
 
         function showQuizEnd() {
             quizSection.innerHTML = `
-                <p class="quiz-question">wow, you are a wholesome saint. if you ever feel like you want to give in to temptation, we're here for you. be the first to know how to clean your conscience.</p>
+                <p class="confession-prompt">wow, you are a wholesome saint. if you ever feel like you want to give in to temptation, we're here for you. be the first to know how to clean your conscience.</p>
                 <div class="email-section fade-in" style="margin-top:1.5rem">
                     <form class="form-row" id="signup-quiz">
                         <input type="email" placeholder="you@email.com" required>
