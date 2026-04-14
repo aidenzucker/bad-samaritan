@@ -186,6 +186,24 @@
         .confess-textarea::placeholder { color: #666; }
         .confess-textarea:focus { border-color: #333; }
 
+        .confess-location {
+            width: 100%;
+            max-width: 360px;
+            display: block;
+            margin: 0.5rem auto 0.75rem;
+            padding: 0.75rem 1rem;
+            border: 1px solid #333;
+            border-radius: 8px;
+            background: #1a1a1a;
+            color: #888;
+            font-size: 0.95rem;
+            font-family: inherit;
+            outline: none;
+        }
+
+        .confess-location::placeholder { color: #666; }
+        .confess-location:focus { border-color: #333; }
+
         .confess-actions {
             display: flex;
             align-items: center;
@@ -217,60 +235,6 @@
 
         .angel-link:hover { color: #999; }
 
-        /* Confession preview */
-        .preview-section {
-            margin-top: 1.5rem;
-            max-width: 360px;
-            margin-left: auto;
-            margin-right: auto;
-            text-align: left;
-        }
-
-        .preview-text {
-            font-size: 0.95rem;
-            color: #999;
-            font-style: italic;
-            margin-bottom: 0.75rem;
-            line-height: 1.5;
-        }
-
-        .location-row {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            margin-bottom: 1rem;
-        }
-
-        .location-row input {
-            flex: 1;
-            padding: 0.75rem 1rem;
-            border: 1px solid #333;
-            border-radius: 8px;
-            background: #1a1a1a;
-            color: #888;
-            font-size: 0.95rem;
-            outline: none;
-        }
-
-        .location-row input:focus { border-color: #333; }
-
-        .location-label {
-            font-size: 0.95rem;
-            color: #888;
-        }
-
-        .preview-submit {
-            padding: 0.75rem 1.5rem;
-            border: 1px solid #333;
-            border-radius: 8px;
-            background: transparent;
-            color: #fff;
-            font-size: 0.95rem;
-            cursor: pointer;
-            transition: color 0.2s;
-        }
-
-        .preview-submit:hover { color: #999; }
 
         /* Post-confession feeling */
         .feeling-section {
@@ -406,25 +370,13 @@
                 <p class="confession-prompt">what do you feel guilty about consuming?</p>
                 <form id="confess">
                     <textarea class="confess-textarea" placeholder="i still listen to..." maxlength="200" required rows="1"></textarea>
+                    <input class="confess-location" type="text" id="confess-location" placeholder="city, state">
                     <div class="confess-actions">
                         <button type="submit" class="confess-btn">Confess</button>
                         <span class="angel-link" id="angel-trigger">i'm innocent</span>
                     </div>
                 </form>
                 <p class="message" id="confess-message"></p>
-            </div>
-
-            <!-- Confession preview -->
-            <div id="preview-section" class="preview-section hidden">
-                <p class="preview-text" id="preview-text"></p>
-                <div class="location-row">
-                    <span class="location-label">from</span>
-                    <input type="text" id="preview-location" placeholder="city, state">
-                </div>
-                <div class="confess-actions">
-                    <button class="confess-btn" id="preview-submit">Submit</button>
-                    <span class="angel-link" id="preview-back">back</span>
-                </div>
             </div>
 
             <!-- Post-confession: How do you feel? -->
@@ -484,34 +436,13 @@
             btn.textContent = 'Submit';
         });
 
-        // ── Confession submission — step 1: show preview ──
-        let pendingConfession = '';
-        document.getElementById('confess').addEventListener('submit', (e) => {
+        // ── Confession submission ──
+        document.getElementById('confess').addEventListener('submit', async (e) => {
             e.preventDefault();
-            const input = e.target.querySelector('textarea');
-            pendingConfession = input.value;
-            document.getElementById('preview-text').textContent = '"' + pendingConfession + '"';
-            document.getElementById('preview-location').value = userCity;
-            document.getElementById('confess-section').classList.add('hidden');
-            const previewSection = document.getElementById('preview-section');
-            previewSection.classList.remove('hidden');
-            previewSection.classList.add('fade-in');
-            input.value = '';
-        });
-
-        // ── Preview: back button ──
-        document.getElementById('preview-back').addEventListener('click', () => {
-            document.getElementById('preview-section').classList.add('hidden');
-            const confessSection = document.getElementById('confess-section');
-            confessSection.classList.remove('hidden');
-            confessSection.classList.add('fade-in');
-            confessSection.querySelector('textarea').value = pendingConfession;
-        });
-
-        // ── Confession submission — step 2: submit from preview ──
-        document.getElementById('preview-submit').addEventListener('click', async () => {
-            const location = document.getElementById('preview-location').value;
-            const btn = document.getElementById('preview-submit');
+            const textarea = e.target.querySelector('textarea');
+            const location = document.getElementById('confess-location').value;
+            const btn = e.target.querySelector('button');
+            const msg = document.getElementById('confess-message');
             btn.disabled = true;
             btn.textContent = 'submitting...';
             try {
@@ -519,17 +450,19 @@
                     method: 'POST',
                     mode: 'no-cors',
                     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                    body: 'confession=' + encodeURIComponent(pendingConfession) + '&location=' + encodeURIComponent(location)
+                    body: 'confession=' + encodeURIComponent(textarea.value) + '&location=' + encodeURIComponent(location)
                 });
-                document.getElementById('preview-section').classList.add('hidden');
+                msg.textContent = '';
+                textarea.value = '';
+                document.getElementById('confess-section').classList.add('hidden');
                 const feelSection = document.getElementById('feeling-section');
                 feelSection.classList.remove('hidden');
                 feelSection.classList.add('fade-in');
             } catch {
-                btn.textContent = 'something went wrong. try again.';
+                msg.textContent = 'something went wrong. try again.';
             }
             btn.disabled = false;
-            btn.textContent = 'Submit';
+            btn.textContent = 'Confess';
         });
 
         // ── Post-confession feeling ──
@@ -829,6 +762,7 @@
                 } else {
                     userCity = d.city.toLowerCase() + ', ' + (d.country_name || '').toLowerCase();
                 }
+                document.getElementById('confess-location').value = userCity;
             })
             .catch(() => {});
 
